@@ -18,6 +18,7 @@
 
 // target specific headers
 #include "qemu/target/m68k/unicorn.h"
+#include "qemu/target/csky/unicorn.h"
 #include "qemu/target/i386/unicorn.h"
 #include "qemu/target/arm/unicorn.h"
 #include "qemu/target/mips/unicorn.h"
@@ -238,6 +239,10 @@ bool uc_arch_supported(uc_arch arch)
     case UC_ARCH_TRICORE:
         return true;
 #endif
+#ifdef UNICORN_HAS_CSKY
+    case UC_ARCH_CSKY:
+        return true;
+#endif
     /* Invalid or disabled arch */
     default:
         return false;
@@ -334,6 +339,15 @@ uc_err uc_open(uc_arch arch, uc_mode mode, uc_engine **result)
         QTAILQ_INIT(&uc->address_spaces);
 
         switch (arch) {
+#ifdef UNICORN_HAS_CSKY
+        case UC_ARCH_CSKY:
+            if (mode != UC_MODE_CSKY_V2) {
+                free(uc);
+                return UC_ERR_MODE;
+            }
+            uc->init_arch = uc_init_csky;
+            break;
+#endif
         default:
             break;
 #ifdef UNICORN_HAS_M68K
@@ -1103,6 +1117,11 @@ uc_err uc_emu_start(uc_engine *uc, uint64_t begin, uint64_t until,
     switch (uc->arch) {
     default:
         break;
+#ifdef UNICORN_HAS_CSKY
+    case UC_ARCH_CSKY:
+        uc_reg_write(uc, UC_CSKY_REG_PC, &begin_pc32);
+        break;
+#endif
 #ifdef UNICORN_HAS_M68K
     case UC_ARCH_M68K:
         uc_reg_write(uc, UC_M68K_REG_PC, &begin_pc32);
@@ -2324,6 +2343,12 @@ static context_reg_rw_t find_context_reg_rw(uc_arch arch, uc_mode mode)
     // We believe that the arch/mode pair is correct.
     context_reg_rw_t rw = {default_reg_read, default_reg_write};
     switch (arch) {
+#ifdef UNICORN_HAS_CSKY
+    case UC_ARCH_CSKY:
+        rw.read = reg_read_csky;
+        rw.write = reg_write_csky;
+        break;
+#endif
     default:
         break;
 #ifdef UNICORN_HAS_M68K
@@ -2849,6 +2874,11 @@ uc_err uc_ctl(uc_engine *uc, uc_control_type control, ...)
                     break;
                 }
                 if (uc->mode & UC_MODE_64 && model >= UC_CPU_SPARC64_ENDING) {
+                    err = UC_ERR_ARG;
+                    break;
+                }
+            } else if (uc->arch == UC_ARCH_CSKY) {
+                if (model >= UC_CPU_CSKY_ENDING) {
                     err = UC_ERR_ARG;
                     break;
                 }

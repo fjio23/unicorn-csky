@@ -6,7 +6,7 @@ import sys, re, os
 
 INCL_DIR = os.path.join('..', 'include', 'unicorn')
 
-include = [ 'arm.h', 'arm64.h', 'mips.h', 'x86.h', 'sparc.h', 'm68k.h', 'ppc.h', 'riscv.h', 's390x.h', 'tricore.h', 'unicorn.h' ]
+include = [ 'arm.h', 'arm64.h', 'mips.h', 'x86.h', 'sparc.h', 'm68k.h', 'ppc.h', 'riscv.h', 's390x.h', 'tricore.h', 'csky.h', 'unicorn.h' ]
 
 template = {
     'python': {
@@ -25,6 +25,7 @@ template = {
             'riscv.h': 'riscv',
             's390x.h' : 's390x',
             'tricore.h' : 'tricore',
+            'csky.h': 'csky',
             'unicorn.h': 'unicorn',
             'comment_open': '#',
             'comment_close': '',
@@ -45,6 +46,7 @@ template = {
             'riscv.h': 'riscv',
             's390x.h' : 's390x',
             'tricore.h' : 'tricore',
+            'csky.h': 'csky',
             'unicorn.h': 'unicorn',
             'comment_open': '#',
             'comment_close': '',
@@ -65,6 +67,7 @@ template = {
             'riscv.h': 'riscv',
             's390x.h' : 's390x',
             'tricore.h' : 'tricore',
+            'csky.h': 'csky',
             'unicorn.h': 'unicorn',
             'comment_open': '//',
             'comment_close': '',
@@ -145,6 +148,7 @@ template = {
             'riscv.h': 'riscv',
             's390x.h' : 's390x',
             'tricore.h' : 'tricore',
+            'csky.h': 'csky',
             'unicorn.h': 'unicorn',
             'comment_open': '//',
             'comment_close': '',

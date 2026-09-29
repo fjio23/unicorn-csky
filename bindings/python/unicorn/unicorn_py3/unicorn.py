@@ -329,7 +329,8 @@ def debug() -> str:
         ('m68k',    uc.UC_ARCH_M68K),
         ('riscv',   uc.UC_ARCH_RISCV),
         ('s390x',   uc.UC_ARCH_S390X),
-        ('tricore', uc.UC_ARCH_TRICORE)
+        ('tricore', uc.UC_ARCH_TRICORE),
+        ('csky', uc.UC_ARCH_CSKY)
     )
 
     all_archs = '-'.join(f'{name}' for name, atype in archs if uc_arch_supported(atype))
@@ -673,7 +674,8 @@ class Uc(RegStateManager):
             uc.UC_ARCH_M68K    : __uc_generic,
             uc.UC_ARCH_RISCV   : __uc_generic,
             uc.UC_ARCH_S390X   : __uc_generic,
-            uc.UC_ARCH_TRICORE : __uc_generic
+            uc.UC_ARCH_TRICORE : __uc_generic,
+            uc.UC_ARCH_CSKY    : __uc_generic
         }[arch]
 
         subclass = wrapped()

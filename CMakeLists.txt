@@ -86,7 +86,7 @@ option(UNICORN_FUZZ "Enable fuzzing" OFF)
 option(UNICORN_LOGGING "Enable logging" OFF)
 option(UNICORN_BUILD_TESTS "Build unicorn tests" ${PROJECT_IS_TOP_LEVEL})
 option(UNICORN_INSTALL "Enable unicorn installation" ${PROJECT_IS_TOP_LEVEL})
-set(UNICORN_ARCH "x86;arm;aarch64;riscv;mips;sparc;m68k;ppc;s390x;tricore" CACHE STRING "Enabled unicorn architectures")
+set(UNICORN_ARCH "x86;arm;aarch64;riscv;mips;sparc;m68k;ppc;s390x;tricore;csky" CACHE STRING "Enabled unicorn architectures")
 option(UNICORN_TRACER "Trace unicorn execution" OFF)
 
 foreach(ARCH_LOOP ${UNICORN_ARCH})
@@ -315,6 +315,9 @@ else()
         set (EXTRA_CFLAGS "${EXTRA_CFLAGS}-DUNICORN_HAS_TRICORE ")
     endif()
 
+    if(UNICORN_HAS_CSKY)
+        set(EXTRA_CFLAGS "${EXTRA_CFLAGS}-DUNICORN_HAS_CSKY ")
+    endif()
     set(EXTRA_CFLAGS "${EXTRA_CFLAGS}-fPIC")
     if(ANDROID_ABI)
         set(EXTRA_CFLAGS "${EXTRA_CFLAGS} --target=${CMAKE_C_COMPILER_TARGET}")
@@ -364,6 +367,9 @@ else()
     endif()
     if (UNICORN_HAS_TRICORE)
         set (TARGET_LIST "${TARGET_LIST}tricore-softmmu, ")
+    endif()
+    if(UNICORN_HAS_CSKY)
+        set(TARGET_LIST "${TARGET_LIST}csky-softmmu, ")
     endif()
     set(TARGET_LIST "${TARGET_LIST} ")
 
@@ -445,6 +451,11 @@ else()
             INPUT_FILE ${CMAKE_BINARY_DIR}/ppc64-softmmu/config-target.mak
             OUTPUT_FILE ${CMAKE_BINARY_DIR}/ppc64-softmmu/config-target.h
         )
+    endif()
+    if(UNICORN_HAS_CSKY)
+        execute_process(COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/qemu/scripts/create_config
+            INPUT_FILE ${CMAKE_BINARY_DIR}/csky-softmmu/config-target.mak
+            OUTPUT_FILE ${CMAKE_BINARY_DIR}/csky-softmmu/config-target.h)
     endif()
     if(UNICORN_HAS_RISCV)
         execute_process(COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/qemu/scripts/create_config
@@ -656,6 +667,43 @@ endif()
 
 if(UNICORN_TRACER)
     target_compile_options(aarch64-softmmu PRIVATE -DUNICORN_TRACER)
+endif()
+
+endif()
+
+if(UNICORN_HAS_CSKY)
+add_library(csky-softmmu STATIC
+    ${UNICORN_ARCH_COMMON}
+
+    qemu/target/csky/cpu.c
+    qemu/target/csky/op_helper_v2.c
+    qemu/target/csky/op_dspv2.c
+    qemu/target/csky/op_vdsp.c
+    qemu/target/csky/op_vdsp2.c
+    qemu/target/csky/op_fpuv3.c
+    qemu/target/csky/csky_ldst.c
+    qemu/target/csky/translate_v2.c
+    qemu/target/csky/unicorn.c
+)
+
+if(MSVC)
+    target_compile_options(csky-softmmu PRIVATE
+        -DNEED_CPU_H
+        /FIcsky.h
+        /I${CMAKE_CURRENT_SOURCE_DIR}/msvc/csky-softmmu
+        /I${CMAKE_CURRENT_SOURCE_DIR}/qemu/target/csky
+    )
+else()
+    target_compile_options(csky-softmmu PRIVATE
+        -DNEED_CPU_H
+        -include csky.h
+        -I${CMAKE_BINARY_DIR}/csky-softmmu
+        -I${CMAKE_CURRENT_SOURCE_DIR}/qemu/target/csky
+    )
+endif()
+
+if(UNICORN_TRACER)
+    target_compile_options(csky-softmmu PRIVATE -DUNICORN_TRACER)
 endif()
 
 endif()
@@ -1318,6 +1366,14 @@ if(UNICORN_HAS_PPC)
     target_link_libraries(ppc64-softmmu PRIVATE unicorn-common)
     set(UNICORN_TEST_FILE ${UNICORN_TEST_FILE} test_ppc)
 endif()
+if(UNICORN_HAS_CSKY)
+    set(UNICORN_COMPILE_OPTIONS ${UNICORN_COMPILE_OPTIONS} -DUNICORN_HAS_CSKY)
+    set(UNICORN_LINK_LIBRARIES ${UNICORN_LINK_LIBRARIES} csky-softmmu)
+    target_link_libraries(csky-softmmu PRIVATE unicorn-common)
+    set(UNICORN_TEST_FILE ${UNICORN_TEST_FILE} test_csky)
+    set(UNICORN_SAMPLE_FILE ${UNICORN_SAMPLE_FILE} sample_csky)
+endif()
+
 if(UNICORN_HAS_RISCV)
     set(UNICORN_COMPILE_OPTIONS ${UNICORN_COMPILE_OPTIONS} -DUNICORN_HAS_RISCV)
     set(UNICORN_LINK_LIBRARIES ${UNICORN_LINK_LIBRARIES} riscv32-softmmu riscv64-softmmu)

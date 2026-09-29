@@ -27,6 +27,7 @@ typedef struct uc_struct uc_engine;
 typedef size_t uc_hook;
 
 #include "m68k.h"
+#include "csky.h"
 #include "x86.h"
 #include "arm.h"
 #include "arm64.h"
@@ -106,6 +107,7 @@ typedef enum uc_arch {
     UC_ARCH_RISCV,   // RISCV architecture
     UC_ARCH_S390X,   // S390X architecture
     UC_ARCH_TRICORE, // TriCore architecture
+    UC_ARCH_CSKY,    // C-SKY V2 architecture
     UC_ARCH_MAX,
 } uc_arch;
 
@@ -151,6 +153,8 @@ typedef enum uc_mode {
     UC_MODE_SPARC32 = 1 << 2, // 32-bit mode
     UC_MODE_SPARC64 = 1 << 3, // 64-bit mode
     UC_MODE_V9 = 1 << 4,      // SparcV9 mode (currently unsupported)
+
+    UC_MODE_CSKY_V2 = 1 << 2, // C-SKY V2, little endian
 
     // riscv
     UC_MODE_RISCV32 = 1 << 2, // 32-bit mode

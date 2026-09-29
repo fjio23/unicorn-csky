@@ -794,6 +794,20 @@ struct TCGContext {
     /* Used to distinguish stores from bad addressing modes.  */
     TCGv store_dummy;
 
+    // target/csky/translate_v2.c
+    TCGv_i32 csky_cpu_R[32];
+    TCGv_i32 csky_cpu_c;
+    TCGv_i32 csky_cpu_v;
+    TCGv_i32 csky_cpu_hi ;
+    TCGv_i32 csky_cpu_lo;
+    TCGv_i32 csky_cpu_hi_guard;
+    TCGv_i32 csky_cpu_lo_guard;
+
+    TCGv_i32 csky_cpu_F0s, csky_cpu_F1s;
+    TCGv_i64 csky_cpu_F0d, csky_cpu_F1d;
+    TCGv_i32 csky_excl_val;
+    TCGv_i32 csky_excl_addr;
+
     // target/tricore/translate.c
     TCGv_i32 cpu_gpr_a[16];
     TCGv_i32 cpu_gpr_d[16];
