@@ -1,6 +1,8 @@
 Unicorn Engine
 ==============
 
+[![C-SKY CI](https://github.com/fjio23/unicorn-csky/actions/workflows/csky-ci.yml/badge.svg)](https://github.com/fjio23/unicorn-csky/actions/workflows/csky-ci.yml)
+
 [![pypi downloads](https://pepy.tech/badge/unicorn)](https://pepy.tech/project/unicorn)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/unicorn.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:unicorn)
 
@@ -39,6 +41,8 @@ Compilation & Docs
 See [docs/COMPILE.md](docs/COMPILE.md) file for how to compile and install Unicorn.
 
 See [docs/CSKY.md](docs/CSKY.md) for C-SKY V2 support, examples, and limitations.
+
+GitHub Actions 使用方法见 [中文入门指南](docs/ACTIONS.zh-CN.md)。
 
 More documentation is available in [docs/README.md](docs/README.md).
 

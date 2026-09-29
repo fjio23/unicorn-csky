@@ -1,3 +1,4 @@
+# Upstream workflow, kept for manual use. C-SKY CI handles push and PR checks.
 on:
   workflow_dispatch:
 

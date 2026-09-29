@@ -4,19 +4,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Upstream workflow, kept for manual use. C-SKY CI handles push and PR checks.
 on:
-  push:
-    paths-ignore:
-      - ".gitignore"
-      - "docs/**"
-      - "README"
-      - "CREDITS.TXT"
-      - "COPYING_GLIB"
-      - "COPYING.LGPL2"
-      - "AUTHORS.TXT"
-      - "CHANGELOG"
-      - "COPYING"
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   build-ubuntu:

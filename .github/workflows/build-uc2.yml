@@ -4,6 +4,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Upstream workflow, kept for manual use. C-SKY CI handles push and PR checks.
 on:
   workflow_dispatch:
     inputs:
@@ -15,18 +16,6 @@ on:
         options:
           - 'Debug'
           - 'Release'
-  push:
-    paths-ignore:
-      - ".gitignore"
-      - "AUTHORS.TXT"
-      - "COPYING"
-      - "COPYING.LGPL2"
-      - "COPYING_GLIB"
-      - "CREDITS.TXT"
-      - "ChangeLog"
-      - "README.md"
-      - "docs/**"
-  pull_request:
 
 env:
   # Specify build type either according to the tag release or manual override

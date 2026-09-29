@@ -1,0 +1,105 @@
+name: C-SKY CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: csky-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Linux / ${{ matrix.target }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [csky-only, all-architectures]
+    env:
+      BUILD_TARGET: ${{ matrix.target }}
+      PYTHONPATH: ${{ github.workspace }}/bindings/python
+      LIBUNICORN_PATH: ${{ github.workspace }}/build
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config
+
+      - name: Configure
+        shell: bash
+        run: |
+          extra_args=()
+          if [[ "$BUILD_TARGET" == csky-only ]]; then
+            extra_args+=(-DUNICORN_ARCH=csky)
+          fi
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DUNICORN_BUILD_TESTS=ON \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install" \
+            -DCMAKE_INSTALL_LIBDIR=lib \
+            "${extra_args[@]}"
+
+      - name: Build
+        run: cmake --build build --parallel 2
+
+      - name: Run C tests
+        shell: bash
+        run: |
+          # The shared test_mem/test_ctl suites need x86 enabled.
+          if [[ "$BUILD_TARGET" == csky-only ]]; then
+            ctest --test-dir build -R '^test_csky$' --output-on-failure --timeout 120
+          else
+            ctest --test-dir build --output-on-failure --timeout 120
+          fi
+
+      - name: Run Python C-SKY tests
+        run: timeout 120s python bindings/python/tests/test_csky.py -v
+
+      - name: Run C example
+        run: ./build/sample_csky
+
+      - name: Package libraries, headers, and Python bindings
+        if: matrix.target == 'csky-only'
+        run: |
+          cmake --install build
+          tar --exclude='__pycache__' --exclude='*.pyc' \
+            -czf unicorn-csky-linux-x86_64.tar.gz \
+            -C install . \
+            -C "$GITHUB_WORKSPACE" bindings/python/unicorn docs/CSKY.md docs/ACTIONS.zh-CN.md samples/sample_csky.c
+
+      - name: Upload Linux build
+        if: matrix.target == 'csky-only'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unicorn-csky-linux-x86_64
+          path: unicorn-csky-linux-x86_64.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload C test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs-${{ matrix.target }}
+          path: build/Testing/Temporary/*.log
+          if-no-files-found: ignore
+          retention-days: 7
